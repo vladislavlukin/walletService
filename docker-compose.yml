@@ -1,0 +1,57 @@
+version: '3.8'
+
+services:
+  postgres:
+    container_name: postgres
+    image: postgres:15
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${postgres_user}
+      POSTGRES_PASSWORD: ${postgres_password}
+      POSTGRES_DB: ${postgres_db}
+    ports:
+      - ":${postgres_port}:${postgres_internal_port}"
+    volumes:
+      - data_postgres:/var/lib/postgresql/data
+    networks:
+      - w_service
+
+  db-migrations:
+    image: liquibase/liquibase
+    environment:
+      LIQUIBASE_COMMAND_URL: jdbc:postgresql://${postgres_host}:${postgres_internal_port}/${postgres_db}
+      LIQUIBASE_COMMAND_USERNAME: ${postgres_user}
+      LIQUIBASE_COMMAND_PASSWORD: ${postgres_password}
+    volumes:
+      - ./src/main/resources/changelog:/liquibase/changelog
+    command: update --changelog-file=changelog-master.xml
+    depends_on:
+      - postgres
+    networks:
+      - w_service
+
+  wallet_service:
+    container_name: wallet_service
+    image: wallet_service:1.0
+    restart: unless-stopped
+    depends_on:
+      - postgres
+    environment:
+      POSTGRES_DRIVER: ${postgres_driver}
+      POSTGRES_USER: ${postgres_user}
+      POSTGRES_PASSWORD: ${postgres_password}
+      POSTGRES_URL: jdbc:postgresql://${postgres_host}:${postgres_internal_port}/${postgres_db}
+    tty: true
+    networks:
+      - w_service
+
+volumes:
+  data_postgres:
+  data_postgres_test:
+  data:
+    driver: local
+
+
+networks:
+  w_service:
+    driver: bridge

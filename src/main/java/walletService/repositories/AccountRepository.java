@@ -1,17 +1,21 @@
 package walletService.repositories;
 
-import lombok.Getter;
 import walletService.data.Account;
 
-import java.util.*;
+import java.util.List;
 
 /**
- * Класс {@code AccountRepository} представляет собой репозиторий для управления учетными записями пользователей.
+ * Интерфейс {@code AccountRepository} представляет собой репозиторий для управления учетными записями пользователей.
  * Он предоставляет методы для получения учетных записей, проверки существования логина и добавления новых учетных записей.
  */
-@Getter
-public class AccountRepository {
-    private final List<Account> accounts = new ArrayList<>();
+public interface AccountRepository {
+
+    /**
+     * Получает все записи.
+     *
+     * @return получает список всех записей или null, если не найдена.
+     */
+    List<Account> getAccounts();
 
     /**
      * Получает учетную запись по логину и паролю.
@@ -20,14 +24,7 @@ public class AccountRepository {
      * @param password Пароль учетной записи.
      * @return Учетная запись с указанным логином и паролем или null, если не найдена.
      */
-    public Account getAccountByLoginAndPassword(String name, String password){
-        return accounts
-                .stream()
-                .filter(account -> account.getLogin().equals(name) && account.getPassword().equals(password))
-                .findFirst()
-                .orElse(null);
-
-    }
+    Account getAccountByLoginAndPassword(String name, String password);
 
     /**
      * Получает учетную запись по логину.
@@ -35,14 +32,7 @@ public class AccountRepository {
      * @param name Логин учетной записи.
      * @return Учетная запись с указанным логином или null, если не найдена.
      */
-    public Account getAccountByLogin(String name){
-        return accounts
-                .stream()
-                .filter(account -> account.getLogin().equals(name))
-                .findFirst()
-                .orElse(null);
-
-    }
+    Account getAccountByLogin(String name);
 
     /**
      * Обновляет баланс аккаунта путем изменения суммы денег и возвращает новый аккаунт.
@@ -51,17 +41,7 @@ public class AccountRepository {
      * @param balance Баланс аккаунта после выполнения транзакции.
      * @return Новый аккаунт с обновленным балансом или null, если аккаунт с указанными данными не найден.
      */
-    public Account updateAccountByAmount(Account account, long balance) {
-        return accounts
-                .stream()
-                .filter(acc -> acc.equals(account))
-                .peek(acc -> {
-                    acc.setBalanceInCents(balance);
-                })
-                .findFirst()
-                .orElse(null);
-    }
-
+    Account updateAccountByAmount(Account account, long balance);
 
     /**
      * Проверяет, существует ли уже логин.
@@ -69,19 +49,15 @@ public class AccountRepository {
      * @param login Логин для проверки.
      * @return true, если логин уже существует, в противном случае - false.
      */
-    public boolean isLoginAlreadyExists(String login) {
-        return login != null && accounts
-                .stream()
-                .anyMatch(account -> account.getLogin().equals(login));
-    }
+    boolean isLoginAlreadyExists(String login);
 
     /**
      * Добавляет новую учетную запись.
      *
      * @param account Учетная запись для добавления.
      */
-    public void addNewAccount(Account account) {
-        accounts.add(account);
-    }
+    void addNewAccount(Account account);
 
 }
+
+

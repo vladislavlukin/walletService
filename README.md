@@ -37,7 +37,6 @@ Wallet-Service - сервис который управляет кредитны
 ```
 mvn clean install
 ```
-
 2. Как проект соберется, выполнить команду для создания образа:
 ```
 docker build -t wallet_service:1.0 .
@@ -45,5 +44,5 @@ docker build -t wallet_service:1.0 .
 
 3. Запустить команду и начать пользоваться:
 ```
-docker run -it wallet_service:1.0
+docker-compose up -d
 ```

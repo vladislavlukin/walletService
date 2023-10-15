@@ -10,8 +10,6 @@ import walletService.repositories.TransactionalRepository;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDateTime;
-import java.time.ZoneId;
-import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.UUID;
 
@@ -86,7 +84,7 @@ public class TransactionServiceImpl implements TransactionService {
         Account updateAccount = accountRepository.updateAccountByAmount(account, balance);
 
         return Transactional.builder()
-                .transactionDate(getCurrentLocalDateTime())
+                .transactionDate(LocalDateTime.now())
                 .isBlocked(false)
                 .amount(amount)
                 .balance(balance)
@@ -114,17 +112,6 @@ public class TransactionServiceImpl implements TransactionService {
         }
     }
 
-    /**
-     * Получает текущее локальное время и дату в формате "yyyy-MM-dd HH:mm:ss".
-     *
-     * @return Строка с текущим временем и датой.
-     */
-    private static String getCurrentLocalDateTime() {
-        ZoneId zoneId = ZoneId.systemDefault();
-        LocalDateTime currentDateTime = LocalDateTime.now(zoneId);
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
-        return currentDateTime.format(formatter);
-    }
 
     @Override
     public String viewTransactionHistory() {

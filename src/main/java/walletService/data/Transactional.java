@@ -4,6 +4,7 @@ import lombok.Builder;
 import lombok.Data;
 import walletService.dto.TransactionType;
 
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Data
@@ -15,5 +16,5 @@ public class Transactional {
     private long balance;
     private TransactionType transactionType;
     private Boolean isBlocked;
-    private String transactionDate;
+    private LocalDateTime transactionDate;
 }

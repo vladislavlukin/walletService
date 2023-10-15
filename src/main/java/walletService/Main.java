@@ -1,9 +1,12 @@
 package walletService;
 
+import walletService.connect.DatabaseConnection;
 import walletService.data.Account;
 import walletService.repositories.AccountRepository;
+import walletService.repositories.AccountRepositoryImpl;
 import walletService.dto.TransactionType;
 import walletService.repositories.TransactionalRepository;
+import walletService.repositories.TransactionalRepositoryImpl;
 import walletService.services.admin.AdminService;
 import walletService.services.admin.AdminServiceImpl;
 import walletService.services.admin.AuthenticationAdminService;
@@ -13,6 +16,8 @@ import walletService.services.user.AuthenticationService;
 import walletService.services.user.UserService;
 import walletService.services.user.UserServiceImpl;
 
+import java.io.IOException;
+import java.sql.SQLException;
 import java.util.Scanner;
 import java.util.UUID;
 
@@ -20,9 +25,9 @@ import java.util.UUID;
  * Главный класс приложения, управляющий взаимодействием с пользователем.
  */
 public class Main {
-    public static void main(String[] args) {
-        TransactionalRepository transactionalRepository = new TransactionalRepository();
-        AccountRepository accountRepository = new AccountRepository();
+    public static void main(String[] args) throws SQLException, ClassNotFoundException {
+        TransactionalRepository transactionalRepository = new TransactionalRepositoryImpl(DatabaseConnection.getConnection());
+        AccountRepository accountRepository = new AccountRepositoryImpl(DatabaseConnection.getConnection());
         Scanner scanner = new Scanner(System.in);
 
         System.out.println("Welcome!");
@@ -178,6 +183,16 @@ public class Main {
         }
     }
 
+    /**
+     * Считывает и проверяет уникальный идентификатор транзакции, предоставленный в виде строки.
+     * Метод выполняет проверку на соответствие формату UUID и сравнивает полученный идентификатор с уникальным
+     * идентификатором, связанным с переданным аккаунтом.
+     *
+     * @param number Строка, представляющая уникальный идентификатор транзакции для проверки.
+     * @param account Аккаунт, для которого выполняется проверка уникального идентификатора транзакции.
+     * @return Проверенный уникальный идентификатор транзакции в виде {@link UUID} или {@code null}, если
+     * идентификатор недопустим или не соответствует уникальному идентификатору аккаунта.
+     */
     private static UUID readAndValidateUniqueNumber(String number, Account account) {
         UUID uniqueNumber;
 

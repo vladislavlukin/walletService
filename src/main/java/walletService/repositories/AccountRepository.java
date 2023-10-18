@@ -1,6 +1,7 @@
 package walletService.repositories;
 
 import walletService.data.Account;
+import walletService.exceptions.DatabaseException;
 
 import java.util.List;
 
@@ -15,7 +16,7 @@ public interface AccountRepository {
      *
      * @return получает список всех записей или null, если не найдена.
      */
-    List<Account> getAccounts();
+    List<Account> getAccounts() throws DatabaseException;
 
     /**
      * Получает учетную запись по логину и паролю.
@@ -24,7 +25,7 @@ public interface AccountRepository {
      * @param password Пароль учетной записи.
      * @return Учетная запись с указанным логином и паролем или null, если не найдена.
      */
-    Account getAccountByLoginAndPassword(String name, String password);
+    Account getAccountByLoginAndPassword(String name, String password) throws DatabaseException;
 
     /**
      * Получает учетную запись по логину.
@@ -32,7 +33,7 @@ public interface AccountRepository {
      * @param name Логин учетной записи.
      * @return Учетная запись с указанным логином или null, если не найдена.
      */
-    Account getAccountByLogin(String name);
+    Account getAccountByLogin(String name) throws DatabaseException;;
 
     /**
      * Обновляет баланс аккаунта путем изменения суммы денег и возвращает новый аккаунт.
@@ -41,7 +42,7 @@ public interface AccountRepository {
      * @param balance Баланс аккаунта после выполнения транзакции.
      * @return Новый аккаунт с обновленным балансом или null, если аккаунт с указанными данными не найден.
      */
-    Account updateAccountByAmount(Account account, long balance);
+    Account updateAccountByAmount(Account account, long balance) throws DatabaseException;;
 
     /**
      * Проверяет, существует ли уже логин.
@@ -49,14 +50,14 @@ public interface AccountRepository {
      * @param login Логин для проверки.
      * @return true, если логин уже существует, в противном случае - false.
      */
-    boolean isLoginAlreadyExists(String login);
+    boolean isLoginAlreadyExists(String login) throws DatabaseException;;
 
     /**
      * Добавляет новую учетную запись.
      *
      * @param account Учетная запись для добавления.
      */
-    void addNewAccount(Account account);
+    void addNewAccount(Account account) throws DatabaseException;;
 
 }
 

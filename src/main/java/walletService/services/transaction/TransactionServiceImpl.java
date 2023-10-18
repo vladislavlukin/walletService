@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import walletService.data.Account;
 import walletService.dto.TransactionType;
 import walletService.data.Transactional;
+import walletService.exceptions.DatabaseException;
 import walletService.repositories.AccountRepository;
 import walletService.repositories.TransactionalRepository;
 
@@ -23,12 +24,14 @@ public class TransactionServiceImpl implements TransactionService {
     private final Account account;
 
     @Override
-    public String executeTransaction(String amount, TransactionType transactionType) {
+    public String executeTransaction(String amount, TransactionType transactionType) throws DatabaseException {
         String text = "Operation completed";
         try {
             performTransaction(amount, transactionType);
         }catch (IllegalArgumentException e){
             text = e.getMessage();
+        }catch (DatabaseException e){
+            throw new DatabaseException("Database error during transaction: " + e.getMessage());
         }
         return text;
     }
@@ -39,7 +42,7 @@ public class TransactionServiceImpl implements TransactionService {
      * @param amount         Сумма транзакции в долларах.
      * @param transactionType Тип транзакции (DEBIT или CREDIT).
      */
-    private void performTransaction(String amount, TransactionType transactionType) {
+    private void performTransaction(String amount, TransactionType transactionType) throws DatabaseException {
         long centsAmount = convertDollarsToCents(amount);
 
         if (account.getIsDeleted() || account.getIsBlocked()) {
@@ -80,7 +83,7 @@ public class TransactionServiceImpl implements TransactionService {
      * @param transactionType Тип транзакции (DEBIT или CREDIT).
      * @return Созданный объект Transactional.
      */
-    private Transactional createNewTransaction(long amount, long balance, TransactionType transactionType) {
+    private Transactional createNewTransaction(long amount, long balance, TransactionType transactionType) throws DatabaseException {
         Account updateAccount = accountRepository.updateAccountByAmount(account, balance);
 
         return Transactional.builder()
@@ -114,12 +117,14 @@ public class TransactionServiceImpl implements TransactionService {
 
 
     @Override
-    public String viewTransactionHistory() {
+    public String viewTransactionHistory() throws DatabaseException {
         String text;
         try {
             text = viewTransactions();
         }catch (IllegalArgumentException e){
             text = e.getMessage();
+        }catch (DatabaseException e) {
+            throw new DatabaseException("Error while retrieving transaction history: " + e.getMessage());
         }
         return text;
     }
@@ -129,7 +134,7 @@ public class TransactionServiceImpl implements TransactionService {
      *
      * @return Строка с историей транзакций в текстовом формате.
      */
-    private String viewTransactions() {
+    private String viewTransactions() throws DatabaseException {
         StringBuilder result = new StringBuilder();
 
         List<Transactional> transactions = transactionalRepository.getTransactionalByAccount(account);

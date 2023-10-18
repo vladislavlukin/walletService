@@ -2,6 +2,7 @@ package walletService.repositories;
 
 import walletService.data.Account;
 import walletService.data.Transactional;
+import walletService.exceptions.DatabaseException;
 
 import java.util.List;
 
@@ -16,12 +17,12 @@ public interface TransactionalRepository {
      * @param account Аккаунт, для которого нужно получить транзакции.
      * @return Список транзакций, связанных с указанным аккаунтом.
      */
-    List<Transactional> getTransactionalByAccount(Account account);
+    List<Transactional> getTransactionalByAccount(Account account) throws DatabaseException;;
 
     /**
      * Добавляет новую транзакцию в репозиторий.
      *
      * @param transactional Новая транзакция для добавления.
      */
-    void addTransactional(Transactional transactional);
+    void addTransactional(Transactional transactional) throws DatabaseException;;
 }

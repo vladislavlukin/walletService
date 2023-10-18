@@ -5,6 +5,7 @@ import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import walletService.data.Account;
+import walletService.exceptions.DatabaseException;
 import walletService.repositories.AccountRepository;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -22,7 +23,7 @@ class AuthenticationServiceTest {
     }
 
     @Test
-    void testGetResponse_ValidCredentials() {
+    void testGetResponse_ValidCredentials() throws DatabaseException {
         Account testAccount = new Account();
         testAccount.setLogin("testUser");
         testAccount.setPassword("password");
@@ -37,7 +38,7 @@ class AuthenticationServiceTest {
     }
 
     @Test
-    void testGetResponse_InvalidCredentials() {
+    void testGetResponse_InvalidCredentials() throws DatabaseException {
         when(accountRepository.getAccountByLoginAndPassword("testUser", "password")).thenReturn(null);
 
         Account result = authenticationService.getAuthenticationAccount();

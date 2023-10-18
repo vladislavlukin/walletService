@@ -11,9 +11,11 @@ import org.junit.jupiter.api.Test;
 import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
+import walletService.connect.config.DatabaseConfig;
 import walletService.data.Account;
 import walletService.data.Transactional;
 import walletService.dto.TransactionType;
+import walletService.exceptions.DatabaseException;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -33,15 +35,16 @@ public class TransactionalRepositoryImplTest {
 
     private static Connection connection;
     private TransactionalRepositoryImpl transactionalRepository;
-    private AccountRepository accountRepository;
     private Account account;
 
     @BeforeAll
-    static void setupDatabase() throws LiquibaseException, SQLException {
+    static void setupDatabase() throws Exception {
         container.start();
         connection = DriverManager.getConnection(container.getJdbcUrl(), container.getUsername(), container.getPassword());
 
-        Liquibase liquibase = new Liquibase("changelog/changelog-master.xml", new ClassLoaderResourceAccessor(), new JdbcConnection(connection));
+        DatabaseConfig databaseConfig = new DatabaseConfig("src/main/resources/application.yaml");
+
+        Liquibase liquibase = new Liquibase(databaseConfig.loadChangelogPath(), new ClassLoaderResourceAccessor(), new JdbcConnection(connection));
 
         liquibase.update();
 
@@ -54,9 +57,9 @@ public class TransactionalRepositoryImplTest {
     }
 
     @BeforeEach
-    void setUp() {
+    void setUp() throws DatabaseException {
         transactionalRepository = new TransactionalRepositoryImpl(connection);
-        accountRepository = new AccountRepositoryImpl(connection);
+        AccountRepository accountRepository = new AccountRepositoryImpl(connection);
 
         account = createAccount();
         accountRepository.addNewAccount(account);
@@ -107,12 +110,18 @@ public class TransactionalRepositoryImplTest {
     }
 
     @Test
-    void testGetTransactionalByAccount() {
+    void testGetTransactionalByAccount() throws DatabaseException {
         List<Transactional> transactions = new ArrayList<>();
         transactions.add(transactional1());
         transactions.add(transactional2());
 
-        transactions.forEach(transactional -> transactionalRepository.addTransactional(transactional));
+        transactions.forEach(transactional -> {
+            try {
+                transactionalRepository.addTransactional(transactional);
+            } catch (DatabaseException e) {
+                throw new RuntimeException(e);
+            }
+        });
 
         List<Transactional> result = transactionalRepository.getTransactionalByAccount(account);
 
@@ -123,7 +132,7 @@ public class TransactionalRepositoryImplTest {
     }
 
     @Test
-    void testAddTransaction() {
+    void testAddTransaction() throws DatabaseException {
         Transactional transaction = transactional1();
 
         transactionalRepository.addTransactional(transaction);

@@ -5,11 +5,13 @@ import liquibase.database.jvm.JdbcConnection;
 import liquibase.exception.LiquibaseException;
 import liquibase.resource.ClassLoaderResourceAccessor;
 import org.junit.jupiter.api.*;
+import walletService.connect.config.DatabaseConfig;
 import walletService.data.Account;
 
 import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
+import walletService.exceptions.DatabaseException;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -35,7 +37,9 @@ class AccountRepositoryImplTest {
         container.start();
         connection = DriverManager.getConnection(container.getJdbcUrl(), container.getUsername(), container.getPassword());
 
-        Liquibase liquibase = new Liquibase("changelog/changelog-master.xml", new ClassLoaderResourceAccessor(), new JdbcConnection(connection));
+        DatabaseConfig databaseConfig = new DatabaseConfig("src/main/resources/application.yaml");
+
+        Liquibase liquibase = new Liquibase(databaseConfig.loadChangelogPath(), new ClassLoaderResourceAccessor(), new JdbcConnection(connection));
 
         liquibase.update();
 
@@ -72,7 +76,7 @@ class AccountRepositoryImplTest {
     }
 
     @Test
-    void testAddNewAccount() {
+    void testAddNewAccount() throws DatabaseException {
         account = createAccount();
         accountRepository.addNewAccount(account);
 
@@ -82,7 +86,7 @@ class AccountRepositoryImplTest {
     }
 
     @Test
-    void testGetAccountByLoginAndPassword() {
+    void testGetAccountByLoginAndPassword() throws DatabaseException {
         account = createAccount();
         accountRepository.addNewAccount(account);
 
@@ -95,7 +99,7 @@ class AccountRepositoryImplTest {
     }
 
     @Test
-    void testGetAccountByLogin() {
+    void testGetAccountByLogin() throws DatabaseException {
         account = createAccount();
         accountRepository.addNewAccount(account);
 
@@ -108,7 +112,7 @@ class AccountRepositoryImplTest {
     }
 
     @Test
-    void testIsLoginAlreadyExists() {
+    void testIsLoginAlreadyExists() throws DatabaseException {
         account = createAccount();
         accountRepository.addNewAccount(account);
 
@@ -120,7 +124,7 @@ class AccountRepositoryImplTest {
     }
 
     @Test
-    public void testUpdateAccountByAmount() {
+    public void testUpdateAccountByAmount() throws DatabaseException {
         account = createAccount();
         accountRepository.addNewAccount(account);
 

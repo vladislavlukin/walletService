@@ -3,6 +3,7 @@ package walletService.services.user;
 import lombok.AllArgsConstructor;
 import walletService.data.Account;
 import walletService.dto.UserResponse;
+import walletService.exceptions.DatabaseException;
 import walletService.repositories.AccountRepository;
 
 import java.time.LocalDateTime;
@@ -18,7 +19,7 @@ public class UserServiceImpl implements UserService {
     private final Account account = new Account();
 
     @Override
-    public UserResponse getResponse() {
+    public UserResponse getResponse() throws DatabaseException {
         Scanner scanner = new Scanner(System.in);
 
         enterName(scanner);
@@ -54,7 +55,7 @@ public class UserServiceImpl implements UserService {
      *
      * @param scanner Сканнер для ввода данных от пользователя.
      */
-    private void enterLogin(Scanner scanner) {
+    private void enterLogin(Scanner scanner) throws DatabaseException {
         UserResponse userResponse = setLogin(scanner.nextLine().trim());
         System.out.println(userResponse.getText());
         if (!userResponse.isResult()) {
@@ -102,7 +103,7 @@ public class UserServiceImpl implements UserService {
      * @param login Логин пользователя.
      * @return Результат операции и текстовое сообщение.
      */
-    private UserResponse setLogin(String login) {
+    private UserResponse setLogin(String login) throws DatabaseException {
         boolean result = true;
         String text = "Great, we're almost done! Now, please set a password (minimum 4 characters):";
         if (!accountRepository.isLoginAlreadyExists(login)) {
@@ -144,7 +145,7 @@ public class UserServiceImpl implements UserService {
      *
      * @param uniqueNumber Уникальный номер пользователя.
      */
-    private void addNewAccount(UUID uniqueNumber) {
+    private void addNewAccount(UUID uniqueNumber) throws DatabaseException {
         account.setUniqueNumber(uniqueNumber);
         account.setAccountCreationDate(LocalDateTime.now());
         account.setBalanceInCents(0);

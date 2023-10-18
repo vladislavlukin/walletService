@@ -4,22 +4,21 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>org.example</groupId>
   <artifactId>walletService</artifactId>
-  <version>1.0-SNAPSHOT</version>
+  <version>1.0</version>
   <name>Archetype - walletService</name>
   <url>http://maven.apache.org</url>
 
   <properties>
     <maven.compiler.source>17</maven.compiler.source>
     <maven.compiler.target>17</maven.compiler.target>
-
-    <db.postgres.host>postgres</db.postgres.host>
-    <db.postgres.name>${env.postgres_db}</db.postgres.name>
-    <db.postgres.username>${env.postgres_user}</db.postgres.username>
-    <db.postgres.password>${env.postgres_password}</db.postgres.password>
-    <db.postgres.url>jdbc:postgresql://${db.postgres.host}/${db.postgres.name}</db.postgres.url>
   </properties>
 
   <dependencies>
+    <dependency>
+      <groupId>org.yaml</groupId>
+      <artifactId>snakeyaml</artifactId>
+      <version>2.0</version>
+    </dependency>
     <dependency>
       <groupId>org.projectlombok</groupId>
       <artifactId>lombok</artifactId>
@@ -89,17 +88,26 @@
       </plugin>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-jar-plugin</artifactId>
-        <version>3.3.0</version>
+        <artifactId>maven-assembly-plugin</artifactId>
+        <version>3.6.0</version>
         <configuration>
+          <descriptorRefs>
+            <descriptorRef>jar-with-dependencies</descriptorRef>
+          </descriptorRefs>
           <archive>
             <manifest>
-              <addClasspath>true</addClasspath>
-              <classpathPrefix>lib/</classpathPrefix>
               <mainClass>walletService.Main</mainClass>
             </manifest>
           </archive>
         </configuration>
+        <executions>
+          <execution>
+            <phase>package</phase>
+            <goals>
+              <goal>single</goal>
+            </goals>
+          </execution>
+        </executions>
       </plugin>
     </plugins>
   </build>

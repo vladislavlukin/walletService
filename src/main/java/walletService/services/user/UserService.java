@@ -1,6 +1,7 @@
 package walletService.services.user;
 
 import walletService.dto.UserResponse;
+import walletService.exceptions.DatabaseException;
 
 /**
  * Интерфейс, представляющий сервис для управления операциями пользователя и получения ответов.
@@ -12,5 +13,5 @@ public interface UserService {
      *
      * @return Объект типа UserResponse, представляющий ответ пользователя.
      */
-    UserResponse getResponse();
+    UserResponse getResponse() throws DatabaseException;
 }

@@ -6,6 +6,7 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import walletService.data.Account;
 import walletService.dto.AdminResponse;
+import walletService.exceptions.DatabaseException;
 import walletService.repositories.AccountRepository;
 import walletService.repositories.TransactionalRepository;
 
@@ -24,7 +25,7 @@ public class AdminServiceTest {
     private AdminServiceImpl adminService;
 
     @BeforeEach
-    void setUp() {
+    void setUp() throws DatabaseException {
         MockitoAnnotations.openMocks(this);
 
         Account account1 = createAccount("johndoe");
@@ -53,21 +54,21 @@ public class AdminServiceTest {
     }
 
     @Test
-    void testGetAdminResponse_ValidLogin() {
+    void testGetAdminResponse_ValidLogin() throws DatabaseException {
         System.out.println(accountRepository.getAccounts());
         AdminResponse response = adminService.getAdminResponse("johndoe");
 
         assertTrue(response.isResult());
     }
     @Test
-    void testGetAdminResponse_InvalidLogin() {
+    void testGetAdminResponse_InvalidLogin() throws DatabaseException {
         AdminResponse response = adminService.getAdminResponse("johndo");
 
         assertFalse(response.isResult());
     }
 
     @Test
-    void testGetAdminResponse() {
+    void testGetAdminResponse() throws DatabaseException {
         AdminResponse response = adminService.getAdminResponse("");
 
         assertTrue(response.isResult());

@@ -7,6 +7,7 @@ import org.mockito.MockitoAnnotations;
 import walletService.data.Account;
 import walletService.data.Transactional;
 import walletService.dto.TransactionType;
+import walletService.exceptions.DatabaseException;
 import walletService.repositories.AccountRepository;
 import walletService.repositories.TransactionalRepository;
 
@@ -45,7 +46,7 @@ class TransactionServiceTest {
     }
 
     @Test
-    void testExecuteTransaction_SuccessfulDebitTransaction() {
+    void testExecuteTransaction_SuccessfulDebitTransaction() throws DatabaseException {
         doNothing().when(transactionalRepository).addTransactional(any(Transactional.class));
 
         String result = transactionService.executeTransaction(AMOUNT, TransactionType.DEBIT);
@@ -56,7 +57,7 @@ class TransactionServiceTest {
     }
 
     @Test
-    void testExecuteTransaction_SuccessfulCreditTransaction() {
+    void testExecuteTransaction_SuccessfulCreditTransaction() throws DatabaseException {
         doNothing().when(transactionalRepository).addTransactional(any(Transactional.class));
 
         String result = transactionService.executeTransaction(AMOUNT, TransactionType.CREDIT);
@@ -67,7 +68,7 @@ class TransactionServiceTest {
     }
 
     @Test
-    void testExecuteTransaction_FailureDebitTransaction() {
+    void testExecuteTransaction_FailureDebitTransaction() throws DatabaseException {
         String amount = "150";
         String result = transactionService.executeTransaction(amount, TransactionType.DEBIT);
 
@@ -78,7 +79,7 @@ class TransactionServiceTest {
 
 
     @Test
-    void testExecuteTransaction_NoCorrectAmount() {
+    void testExecuteTransaction_NoCorrectAmount() throws DatabaseException {
         String amount = "150.Q";
         String result = transactionService.executeTransaction(amount, TransactionType.DEBIT);
 
@@ -88,7 +89,7 @@ class TransactionServiceTest {
     }
 
     @Test
-    void testViewTransactionHistory_EmptyTransactions() {
+    void testViewTransactionHistory_EmptyTransactions() throws DatabaseException {
         when(transactionalRepository.getTransactionalByAccount(eq(account))).thenReturn(List.of());
 
         String result = transactionService.viewTransactionHistory();
@@ -97,7 +98,7 @@ class TransactionServiceTest {
     }
 
     @Test
-    void testViewTransactionHistory_ValidTransactions() {
+    void testViewTransactionHistory_ValidTransactions() throws DatabaseException {
         List<Transactional> transactions = createSampleTransactions();
         when(transactionalRepository.getTransactionalByAccount(eq(account))).thenReturn(transactions);
 

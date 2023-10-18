@@ -1,5 +1,8 @@
 package walletService.connect;
 
+import walletService.connect.config.DatabaseConfig;
+import walletService.exceptions.DatabaseConnectionException;
+
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
@@ -11,18 +14,31 @@ public class DatabaseConnection {
     /**
      * Устанавливает соединение с базой данных на основе предоставленной конфигурации.
      *
+     * @param config Конфигурация базы данных.
      * @return Объект Connection, представляющий установленное соединение с базой данных.
-     * @throws ClassNotFoundException Если класс драйвера базы данных не найден.
-     * @throws SQLException           Если произошла ошибка при подключении к базе данных.
+     * @throws DatabaseConnectionException Если произошла ошибка при установлении соединения.
      */
-    public static Connection getConnection() throws SQLException, ClassNotFoundException {
-        String driver = System.getenv("POSTGRES_DRIVER");
-        String url = System.getenv("POSTGRES_URL");
-        String username = System.getenv("POSTGRES_USER");
-        String password = System.getenv("POSTGRES_PASSWORD");
+    public static Connection getConnection(DatabaseConfig config) throws DatabaseConnectionException {
+        try {
+            Class.forName(config.getDriver());
+            return DriverManager.getConnection(config.getUrl(), config.getUsername(), config.getPassword());
+        } catch (ClassNotFoundException | SQLException e) {
+            throw new DatabaseConnectionException("Failed to database connection.");
+        }
+    }
 
-        Class.forName(driver);
-
-        return DriverManager.getConnection(url, username, password);
+    /**
+     * Закрывает соединение с базой данных.
+     *
+     * @param connection Соединение, которое требуется закрыть.
+     */
+    public static void closeConnection(Connection connection) {
+        if (connection != null) {
+            try {
+                connection.close();
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        }
     }
 }

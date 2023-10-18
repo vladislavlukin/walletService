@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import walletService.data.Account;
 import walletService.data.Transactional;
 import walletService.dto.AdminResponse;
+import walletService.exceptions.DatabaseException;
 import walletService.repositories.AccountRepository;
 import walletService.repositories.TransactionalRepository;
 
@@ -24,14 +25,14 @@ public class AdminServiceImpl implements AdminService {
      * @param accounts Список аккаунтов для аудита.
      * @return Текстовый отчет об активности или "Report not found", если отчет не найден.
      */
-    public String getAudit(List<Account> accounts){
+    public String getAudit(List<Account> accounts) throws DatabaseException {
         StringBuilder result = new StringBuilder();
 
         if (accounts == null || accounts.isEmpty()){
             return result.toString();
         }
 
-        accounts.forEach(account -> {
+        for (Account account : accounts){
             String status = (!account.getIsBlocked() && !account.getIsDeleted()) ? "active" : (account.getIsDeleted()) ? "deleted" : "blocked";
             result.append("==================================================").append("\n");
             result.append("User Name: ").append(account.getFullName()).append("\n");
@@ -54,12 +55,12 @@ public class AdminServiceImpl implements AdminService {
             result.append("--------------------------------------------------").append("\n");
 
             result.append("==================================================").append("\n");
-        });
+        }
         return result.toString();
     }
 
     @Override
-    public AdminResponse getAdminResponse(String login) {
+    public AdminResponse getAdminResponse(String login) throws DatabaseException {
         List<Account> accounts;
 
         if (login.isEmpty()) {

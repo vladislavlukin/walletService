@@ -9,6 +9,7 @@ import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import walletService.dto.UserResponse;
+import walletService.exceptions.DatabaseException;
 import walletService.repositories.AccountRepository;
 
 import java.io.ByteArrayInputStream;
@@ -31,7 +32,7 @@ class UserServiceTest {
     }
 
     @Test
-    void testGetResponse() {
+    void testGetResponse() throws DatabaseException {
         String userInput = "John Doe\nmylogin\nmypassword\n";
 
         setInput(userInput);

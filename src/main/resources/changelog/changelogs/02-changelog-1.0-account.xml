@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.20.xsd">
+    <changeSet id="create-account-table" author="Vladislav Lukin">
+        <createTable tableName="account" schemaName="wallet" remarks="Таблица для сущности аккаунта пользователя">
+            <!-- table columns -->
+            <column autoIncrement="true" name="id" type="BIGINT" remarks="Уникальный идентификатор для аккаунта">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="account_pkey"/>
+            </column>
+            <column name="is_deleted" type="BOOLEAN" remarks="Булевый флаг, указывающий, удалена ли учетная запись">
+                <constraints nullable="false"/>
+            </column>
+            <column name="is_blocked" type="BOOLEAN" remarks="Булевый флаг, указывающий, заблокирован ли аккаунт">
+                <constraints nullable="false"/>
+            </column>
+            <column name="full_name" type="TEXT" remarks="Имя владельца учетной записи">
+                <constraints nullable="false"/>
+            </column>
+            <column name="login" type="TEXT" remarks="Логин владельца учетной записи">
+                <constraints nullable="false"/>
+            </column>
+            <column name="password" type="TEXT" remarks="Пароль для учетной записи">
+                <constraints nullable="false"/>
+            </column>
+            <column name="balance_in_cents" type="BIGINT" remarks="Колличество средств на счету в центах">
+                <constraints nullable="false"/>
+            </column>
+            <column name="unique_number" type="UUID" remarks="Уникальный номер для проведения транзакций">
+                <constraints nullable="false"/>
+            </column>
+            <column name="account_creation_date" type="datetime" remarks="Время регистрации учетной записи">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+</databaseChangeLog>

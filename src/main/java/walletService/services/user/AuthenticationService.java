@@ -2,6 +2,7 @@ package walletService.services.user;
 
 import lombok.AllArgsConstructor;
 import walletService.data.Account;
+import walletService.exceptions.DatabaseException;
 import walletService.repositories.AccountRepository;
 
 /**
@@ -19,7 +20,7 @@ public class AuthenticationService{
      * @return Объект типа Account, представляющий аутентифицированного пользователя,
      *         или null, если пользователь не найден или аутентификация не удалась.
      */
-    public Account getAuthenticationAccount(){
+    public Account getAuthenticationAccount() throws DatabaseException {
         return accountRepository.getAccountByLoginAndPassword(name, password);
     }
 

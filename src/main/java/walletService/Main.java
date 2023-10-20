@@ -1,9 +1,17 @@
 package walletService;
 
+import walletService.connect.DatabaseConnection;
+import walletService.connect.LiquibaseMigrator;
+import walletService.connect.config.DatabaseConfig;
 import walletService.data.Account;
+import walletService.exceptions.DatabaseConnectionException;
+import walletService.exceptions.DatabaseException;
+import walletService.exceptions.LiquibaseException;
 import walletService.repositories.AccountRepository;
+import walletService.repositories.AccountRepositoryImpl;
 import walletService.dto.TransactionType;
 import walletService.repositories.TransactionalRepository;
+import walletService.repositories.TransactionalRepositoryImpl;
 import walletService.services.admin.AdminService;
 import walletService.services.admin.AdminServiceImpl;
 import walletService.services.admin.AuthenticationAdminService;
@@ -13,6 +21,9 @@ import walletService.services.user.AuthenticationService;
 import walletService.services.user.UserService;
 import walletService.services.user.UserServiceImpl;
 
+import java.io.IOException;
+import java.sql.Connection;
+import java.sql.SQLException;
 import java.util.Scanner;
 import java.util.UUID;
 
@@ -20,39 +31,55 @@ import java.util.UUID;
  * Главный класс приложения, управляющий взаимодействием с пользователем.
  */
 public class Main {
+    private static final String PATH = "src/main/resources/application.yaml";
     public static void main(String[] args) {
-        TransactionalRepository transactionalRepository = new TransactionalRepository();
-        AccountRepository accountRepository = new AccountRepository();
-        Scanner scanner = new Scanner(System.in);
+        Connection connection = null;
+        try {
+            DatabaseConfig databaseConfig = new DatabaseConfig(PATH);
+            databaseConfig.loadConfig();
 
-        System.out.println("Welcome!");
+            connection = DatabaseConnection.getConnection(databaseConfig);
 
-        while (true) {
-            System.out.println("\nAre you a registered user? Answer: yes/no");
-            String response = scanner.nextLine().trim();
+            LiquibaseMigrator liquibaseMigrator = new LiquibaseMigrator(connection);
+            liquibaseMigrator.migrate(databaseConfig.loadChangelogPath());
 
-            switch (response) {
-                case "yes" -> {
-                    Account account = authenticateUser(accountRepository, scanner);
-                    if(account == null){
-                     continue;
+            TransactionalRepository transactionalRepository = new TransactionalRepositoryImpl(connection);
+            AccountRepository accountRepository = new AccountRepositoryImpl(connection);
+            Scanner scanner = new Scanner(System.in);
+
+            System.out.println("Welcome!");
+
+            while (true) {
+                System.out.println("\nAre you a registered user? Answer: yes/no");
+                String response = scanner.nextLine().trim();
+
+                switch (response) {
+                    case "yes" -> {
+                        Account account = authenticateUser(accountRepository, scanner);
+                        if (account == null) {
+                            continue;
+                        }
+                        handleRegisteredUser(account, accountRepository, transactionalRepository, scanner);
                     }
-                    handleRegisteredUser(account, accountRepository, transactionalRepository, scanner);
-                }
-                case "no" -> {
-                    UserService userService = new UserServiceImpl(accountRepository);
+                    case "no" -> {
+                        UserService userService = new UserServiceImpl(accountRepository);
 
-                    System.out.println(userService.getResponse().getText());
-                }
-                case "admin" -> {
-                    if(isAuthenticationAdmin(scanner)){
-                        handleAdmin(accountRepository, transactionalRepository, scanner);
+                        System.out.println(userService.getResponse().getText());
                     }
+                    case "admin" -> {
+                        if (isAuthenticationAdmin(scanner)) {
+                            handleAdmin(accountRepository, transactionalRepository, scanner);
+                        }
+                    }
+                    default -> System.out.println("Invalid response, let's start over.");
+
                 }
-                default -> System.out.println("Invalid response, let's start over.");
 
             }
-
+        }catch (DatabaseException | DatabaseConnectionException | LiquibaseException e) {
+            System.out.println("ERROR: " + e.getMessage());
+        } finally {
+            DatabaseConnection.closeConnection(connection);
         }
     }
 
@@ -63,7 +90,7 @@ public class Main {
      * @param scanner Объект Scanner для считывания ввода пользователя.
      * @return Аутентифицированный аккаунт в случае успеха или null, если аутентификация не удалась.
      */
-    private static Account authenticateUser(AccountRepository accountRepository, Scanner scanner) {
+    private static Account authenticateUser(AccountRepository accountRepository, Scanner scanner) throws DatabaseException  {
         System.out.println("Enter your login:");
         String username = scanner.nextLine().trim();
         System.out.println("Enter your password:");
@@ -88,7 +115,7 @@ public class Main {
      * @param scanner Объект Scanner для чтения ввода пользователя.
      */
     private static void handleRegisteredUser(Account account, AccountRepository accountRepository,
-                                             TransactionalRepository transactionalRepository, Scanner scanner) {
+                                             TransactionalRepository transactionalRepository, Scanner scanner) throws DatabaseException {
         System.out.println("\nWelcome, " + account.getFullName() +
                 "\nYour balance: " + (double) account.getBalanceInCents()/100 + " $");
 
@@ -152,7 +179,7 @@ public class Main {
      * @param accountRepository   Репозиторий данных для доступа к информации о пользователях.
      * @param scanner Объект Scanner для чтения ввода пользователя.
      */
-    private static void handleAdmin(AccountRepository accountRepository, TransactionalRepository transactionalRepository, Scanner scanner) {
+    private static void handleAdmin(AccountRepository accountRepository, TransactionalRepository transactionalRepository, Scanner scanner) throws DatabaseException {
         System.out.println("\nWelcome, Admin");
 
         AdminService adminService = new AdminServiceImpl(accountRepository, transactionalRepository);
@@ -178,6 +205,16 @@ public class Main {
         }
     }
 
+    /**
+     * Считывает и проверяет уникальный идентификатор транзакции, предоставленный в виде строки.
+     * Метод выполняет проверку на соответствие формату UUID и сравнивает полученный идентификатор с уникальным
+     * идентификатором, связанным с переданным аккаунтом.
+     *
+     * @param number Строка, представляющая уникальный идентификатор транзакции для проверки.
+     * @param account Аккаунт, для которого выполняется проверка уникального идентификатора транзакции.
+     * @return Проверенный уникальный идентификатор транзакции в виде {@link UUID} или {@code null}, если
+     * идентификатор недопустим или не соответствует уникальному идентификатору аккаунта.
+     */
     private static UUID readAndValidateUniqueNumber(String number, Account account) {
         UUID uniqueNumber;
 

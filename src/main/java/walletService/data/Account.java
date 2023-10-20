@@ -7,6 +7,7 @@ import java.util.UUID;
 
 @Data
 public class Account {
+    private long id;
     private String fullName;
     private String login;
     private String password;

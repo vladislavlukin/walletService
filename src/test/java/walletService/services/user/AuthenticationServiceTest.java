@@ -2,47 +2,48 @@ package walletService.services.user;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
 import walletService.data.Account;
+import walletService.exceptions.DatabaseException;
 import walletService.repositories.AccountRepository;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.when;
 
 class AuthenticationServiceTest {
     private AuthenticationService authenticationService;
+    @Mock
     private AccountRepository accountRepository;
-    private Account account;
 
     @BeforeEach
     void setUp() {
-        accountRepository = new AccountRepository();
-        account = createAccount();
-    }
-
-    private Account createAccount() {
-        Account account = new Account();
-        account.setLogin("testUser");
-        account.setPassword("password");
-        account.setFullName("Test User");
-        accountRepository.addNewAccount(account);
-        return account;
+        MockitoAnnotations.openMocks(this);
+        authenticationService = new AuthenticationService(accountRepository, "testUser", "password");
     }
 
     @Test
-    void testGetResponse_ValidCredentials() {
-        authenticationService = new AuthenticationService(accountRepository, account.getLogin(), account.getPassword());
+    void testGetResponse_ValidCredentials() throws DatabaseException {
+        Account testAccount = new Account();
+        testAccount.setLogin("testUser");
+        testAccount.setPassword("password");
 
-        Account testAccount = authenticationService.getAuthenticationAccount();
+        when(accountRepository.getAccountByLoginAndPassword("testUser", "password")).thenReturn(testAccount);
 
-        assertEquals(account, testAccount);
+        Account result = authenticationService.getAuthenticationAccount();
+
+        assertNotNull(result);
+        assertEquals("testUser", result.getLogin());
+        assertEquals("password", result.getPassword());
     }
 
     @Test
-    void testGetResponse_InvalidCredentials() {
-        authenticationService = new AuthenticationService(accountRepository, account.getLogin(), "error");
+    void testGetResponse_InvalidCredentials() throws DatabaseException {
+        when(accountRepository.getAccountByLoginAndPassword("testUser", "password")).thenReturn(null);
 
-        Account testAccount = authenticationService.getAuthenticationAccount();
+        Account result = authenticationService.getAuthenticationAccount();
 
-        assertNull(testAccount);
+        assertNull(result);
     }
 
 }

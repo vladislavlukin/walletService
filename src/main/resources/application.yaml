@@ -1,0 +1,7 @@
+datasource:
+  driverClassName: org.postgresql.Driver
+  url: jdbc:postgresql://localhost:5433/wallet
+  username: postgres
+  password: postgres
+liquibase:
+  change-log: changelog/changelog-master.xml
